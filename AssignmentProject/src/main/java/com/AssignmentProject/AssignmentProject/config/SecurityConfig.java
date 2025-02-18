@@ -26,13 +26,18 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
 
-    @Autowired
-    private JwtAuthFilter authFilter;
+    private final JwtAuthFilter authFilter;
+    private final UserInfoService userInfoService;
 
-    @Bean
-    public UserDetailsService userDetailsService() {
-        return new UserInfoService();
+    public SecurityConfig(JwtAuthFilter authFilter, UserInfoService userInfoService) {
+        this.authFilter = authFilter;
+        this.userInfoService = userInfoService;
     }
+
+//    @Bean
+//    public UserDetailsService userDetailsService() {
+//        return new UserInfoService();
+//    }
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http,JwtAuthFilter jwtAuthFilter) throws Exception {
@@ -41,7 +46,9 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/auth/Welcome",
                                 "/auth/addNewUser",
-                                "/auth/generateToken").permitAll()
+                                "/auth/generateToken",
+                                "/swagger-ui/**", "/v3/api-docs/**", "/swagger-ui.html"
+                        ).permitAll()
                         .requestMatchers("/auth/user/**").hasAuthority("ROLE_USER")
                         .requestMatchers("/auth/admin/**").hasAuthority("ROLE_ADMIN")
                         .anyRequest().authenticated()
@@ -62,7 +69,7 @@ public class SecurityConfig {
     @Bean
     public AuthenticationProvider authenticationProvider() {
         DaoAuthenticationProvider authenticationProvider = new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService());
+        authenticationProvider.setUserDetailsService(userInfoService);
         authenticationProvider.setPasswordEncoder(passwordEncoder());
         return authenticationProvider;
     }

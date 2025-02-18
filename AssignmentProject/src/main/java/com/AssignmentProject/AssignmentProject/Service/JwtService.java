@@ -1,6 +1,7 @@
 package com.AssignmentProject.AssignmentProject.Service;
 
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
@@ -19,7 +20,7 @@ import java.util.function.Function;
 @Component
 public class JwtService {
     // Use a strong, 256-bit (32-byte) secret key
-    private static final String SECRET = "Tanvir13ghjgjhjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj";
+    private String SECRET = "Tanvir13ghjgjhjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjjj";
 
     // Generate token with given user name
     public String generateToken(String username) {
@@ -39,7 +40,7 @@ public class JwtService {
 
     // Get the signing key for JWT token
     private Key getSignKey() {
-        byte[] keyBytes = SECRET.getBytes();  // FIX: Directly get bytes, no Base64 decoding needed
+        byte[] keyBytes = Decoders.BASE64.decode(SECRET);
         return Keys.hmacShaKeyFor(keyBytes);
     }
 
@@ -57,11 +58,15 @@ public class JwtService {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parser()
-                .setSigningKey(getSignKey())  // FIX: parserBuilder() instead of parser()
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parser()
+                    .setSigningKey(getSignKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            throw new RuntimeException("Token has expired, please log in again.");
+        }
     }
 
     private Boolean isTokenExpired(String token) {

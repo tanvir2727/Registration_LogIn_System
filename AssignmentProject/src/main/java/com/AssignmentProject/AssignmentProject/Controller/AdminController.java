@@ -10,9 +10,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/user/task")
-@PreAuthorize("hasAuthority('ROLE_USER')")
-public class UserController {
+@RequestMapping("/admin/task")
+@PreAuthorize("hasAuthority('ROLE_ADMIN')")
+public class AdminController {
 
     @Autowired
     private TaskService taskService;
@@ -37,9 +37,8 @@ public class UserController {
         return taskService.assignUsersToTask(taskId, userEmails);
     }
 
-    @GetMapping("/task/my-tasks")
-    public List<Task> getUserTasks() {
+    @GetMapping("/task/all")
+    public List<Task> getAllTasks() {
         return taskService.getUserTasks();
     }
-
 }
